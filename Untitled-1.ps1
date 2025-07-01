@@ -1,0 +1,1 @@
+.\compilar_todos_java20.ps1
