@@ -320,8 +320,8 @@ public class JogoCenario extends CenarioPadrao {
 
 		g.drawImage(fundo.getImage(), 0, 0, null);
 
-		texto.desenha(g, "Tupã | " + navJogUm.getPontos(), 10, 20);
-		texto.desenha(g, "Îasy | " + navJogDois.getPontos(), largura - 120, 20);
+		texto.desenha(g, "TupÃ£ | " + navJogUm.getPontos(), 10, 20);
+		texto.desenha(g, "ÃŽasy | " + navJogDois.getPontos(), largura - 120, 20);
 
 		if (navJogUm.getSeguidos() > 2)
 			texto.desenha(g, "x" + navJogUm.getSeguidos(), 10, 40);
