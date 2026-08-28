@@ -61,8 +61,8 @@ public class Util {
 	 * Teletransporte
 	 */
 	public static void corrigePosicao(Elemento el, int limiteX, int limitY) {
-		float nx = el.getMovPx(); // Nova posição x
-		float ny = el.getMovPy(); // Nova posição y
+		float nx = el.getMovPx(); // Nova posiÃ§Ã£o x
+		float ny = el.getMovPy(); // Nova posiÃ§Ã£o y
 
 		if (nx + el.getLargura() < 0)
 			nx = limiteX;

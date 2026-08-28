@@ -1,0 +1,15 @@
+# Compiled class files
+*.class
+
+# Diretorios de saida de compilacao (IntelliJ/scripts)
+**/bin/
+**/out/
+
+# IDE
+.idea/workspace.xml
+.idea/shelf/
+*.iws
+
+# Maven/Gradle (caso venham a ser adotados futuramente)
+target/
+build/

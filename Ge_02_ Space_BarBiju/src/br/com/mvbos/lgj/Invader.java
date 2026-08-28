@@ -70,7 +70,7 @@ public class Invader extends Elemento {
 			larg = larg + 4;
 
 			if (aberto) {
-				// Desenha um retangulo em pé na cor cinza escuro
+				// Desenha um retangulo em pÃ© na cor cinza escuro
 				g.setColor(Color.DARK_GRAY);
 				g.fillRect(getPx(), getPy(), getAltura(), larg);
 
