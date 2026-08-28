@@ -656,6 +656,13 @@ public class JogoCenario extends CenarioPadrao {
 		texto.setCor(Color.YELLOW);
 		texto.desenha(g, "GE_04_Pacman_tavares", largura / 2 - 90, altura / 2 + ESPACO_TOPO);
 
+		if (estado == Estado.GANHOU) {
+			texto.setCor(Color.YELLOW);
+			texto.desenha(g, "VOCÊ VENCEU!", largura / 2 - 70, altura / 2 + ESPACO_TOPO - 40);
+			texto.setCor(Color.WHITE);
+			texto.desenha(g, "Pressione ESC para voltar ao menu", largura / 2 - 140, altura / 2 + ESPACO_TOPO - 15);
+		}
+
 		if (depurar) {
 			g.setColor(Color.WHITE);
 			for (int i = 0; i < grade.length; i++) {
