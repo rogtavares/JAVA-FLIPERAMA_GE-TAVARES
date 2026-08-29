@@ -136,11 +136,11 @@ public class Jogo extends JFrame {
 		while (true) {
 			if (System.currentTimeMillis() >= prxAtualizacao) {
 
-				g2d.setColor(Color.DARK_GRAY);
+				g2d.setColor(Color.BLACK);
 				g2d.fillRect(0, 0, JANELA_LARGURA, JANELA_ALTURA);
 
 				if (controleTecla[Tecla.BA.ordinal()]) {
-					// Pressionou espa�o ou enter
+					// Pressionou espaço ou enter
 					if (cenario instanceof InicioCenario) {
 						cenario.descarregar();
 						cenario = null;
@@ -174,7 +174,7 @@ public class Jogo extends JFrame {
 
 				if (cenario == null) {
 					g2d.setColor(Color.WHITE);
-					g2d.drawString("O Cen�rio � uma ilus�o...", 20, 20);
+					g2d.drawString("O Cenário é uma ilusão...", 20, 20);
 
 				} else {
 					if (!Jogo.pausado)

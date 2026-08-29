@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.Random;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequencer;
-import javax.sound.sampled.AudioFileFormat.Type;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -60,6 +59,8 @@ public class JogoCenario extends CenarioPadrao {
 
 	private Sequencer seqSomDeFundo;
 
+	private boolean somParado;
+
 	public JogoCenario(int largura, int altura) {
 		super(largura, altura);
 	}
@@ -73,11 +74,6 @@ public class JogoCenario extends CenarioPadrao {
 			for (int j = 0; j < grade[0].length; j++) {
 				grade[i][j] = ESPACO_VAZIO;
 			}
-		}
-
-		Type[] audioFileTypes = AudioSystem.getAudioFileTypes();
-		for (Type t : audioFileTypes) {
-			System.out.println(t.getExtension());
 		}
 
 		try {
@@ -123,6 +119,22 @@ public class JogoCenario extends CenarioPadrao {
 		}
 	}
 
+	private void pararSons() {
+		if (somParado)
+			return;
+
+		somParado = true;
+
+		if (clipAdicionarPeca != null)
+			clipAdicionarPeca.stop();
+
+		if (clipMarcarLinha != null)
+			clipMarcarLinha.stop();
+
+		if (seqSomDeFundo != null)
+			seqSomDeFundo.stop();
+	}
+
 	@Override
 	public void atualizar() {
 
@@ -147,12 +159,17 @@ public class JogoCenario extends CenarioPadrao {
 				ppy++;
 		}
 
-		if (depurar && Jogo.controleTecla[Jogo.Tecla.BC.ordinal()]) {
-			if (++idPeca == Peca.PECAS.length)
-				idPeca = 0;
+		if (Jogo.controleTecla[Jogo.Tecla.BC.ordinal()]) {
+			if (depurar) {
+				if (++idPeca == Peca.PECAS.length)
+					idPeca = 0;
 
-			peca = Peca.PECAS[idPeca];
-			corPeca = Peca.Cores[idPeca];
+				peca = Peca.PECAS[idPeca];
+				corPeca = Peca.Cores[idPeca];
+
+			} else {
+				quedaRapida();
+			}
 		}
 
 		Jogo.liberaTeclas();
@@ -184,6 +201,7 @@ public class JogoCenario extends CenarioPadrao {
 
 				} else {
 					estado = Estado.PERDEU;
+					pararSons();
 				}
 
 			} else
@@ -192,6 +210,27 @@ public class JogoCenario extends CenarioPadrao {
 		} else
 			temporizador += nivel;
 
+	}
+
+	private int calculaPousoFantasma() {
+		int y = ppy;
+
+		while (validaMovimento(peca, ppx, y + 1)) {
+			y++;
+		}
+
+		return y;
+	}
+
+	private void quedaRapida() {
+		if (peca == null)
+			return;
+
+		while (validaMovimento(peca, ppx, ppy + 1)) {
+			ppy++;
+		}
+
+		temporizador = 20;
 	}
 
 	public void adicionaPeca() {
@@ -340,6 +379,7 @@ public class JogoCenario extends CenarioPadrao {
 
 		if (nivel == 9 && linhasFeistas >= 9) {
 			estado = Estado.GANHOU;
+			pararSons();
 
 		} else if (linhasFeistas >= 9) {
 			nivel++;
@@ -382,41 +422,6 @@ public class JogoCenario extends CenarioPadrao {
 			clipMarcarLinha.start();
 		}
 
-	}
-
-	protected void girarPeca(boolean sentidoHorario) {
-		if (peca == null)
-			return;
-
-		final int[][] temp = new int[peca.length][peca.length];
-
-		for (int i = 0; i < peca.length; i++) {
-			for (int j = 0; j < peca.length; j++) {
-				if (sentidoHorario)
-					temp[j][peca.length - i - 1] = peca[i][j];
-				else
-					temp[peca.length - j - 1][i] = peca[i][j];
-			}
-		}
-
-		System.out.println("Antes:");
-		imprimirArray(peca);
-		System.out.println("Depois:");
-		imprimirArray(temp);
-
-		if (validaMovimento(temp, ppx, ppy)) {
-			peca = temp;
-		}
-	}
-
-	private void imprimirArray(int[][] arr) {
-		for (int lin = 0; lin < arr.length; lin++) {
-			for (int col = 0; col < arr[lin].length; col++) {
-				System.out.print(arr[lin][col] + "\t");
-			}
-
-			System.out.println();
-		}
 	}
 
 	private void girarReposicionarPeca(boolean sentidoHorario) {
@@ -462,6 +467,21 @@ public class JogoCenario extends CenarioPadrao {
 	@Override
 	public void desenhar(Graphics2D g) {
 
+		g.setColor(new Color(40, 40, 40));
+
+		for (int col = 0; col <= grade.length; col++) {
+			int x = col * largBloco;
+			g.drawLine(x, 0, x, grade[0].length * altBloco);
+		}
+
+		for (int lin = 0; lin <= grade[0].length; lin++) {
+			int y = lin * altBloco;
+			g.drawLine(0, y, grade.length * largBloco, y);
+		}
+
+		g.setColor(Color.GRAY);
+		g.drawRect(0, 0, grade.length * largBloco - 1, grade[0].length * altBloco - 1);
+
 		for (int col = 0; col < grade.length; col++) {
 			for (int lin = 0; lin < grade[0].length; lin++) {
 				int valor = grade[col][lin];
@@ -479,6 +499,27 @@ public class JogoCenario extends CenarioPadrao {
 
 				g.fillRect(x, y, largBloco - ESPACAMENTO, altBloco - ESPACAMENTO);
 
+			}
+		}
+
+		if (peca != null && estado == Estado.JOGANDO) {
+			int ppyFantasma = calculaPousoFantasma();
+
+			if (ppyFantasma != ppy) {
+				Color corFantasma = new Color(corPeca.getRed(), corPeca.getGreen(), corPeca.getBlue(), 70);
+				g.setColor(corFantasma);
+
+				for (int col = 0; col < peca.length; col++) {
+					for (int lin = 0; lin < peca[col].length; lin++) {
+						if (peca[lin][col] == 0)
+							continue;
+
+						int x = (col + ppx) * largBloco + ESPACAMENTO;
+						int y = (lin + ppyFantasma) * altBloco + ESPACAMENTO;
+
+						g.fillRect(x, y, largBloco - ESPACAMENTO, altBloco - ESPACAMENTO);
+					}
+				}
 			}
 		}
 
