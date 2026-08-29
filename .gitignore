@@ -6,8 +6,7 @@
 **/out/
 
 # IDE
-.idea/workspace.xml
-.idea/shelf/
+.idea/
 *.iws
 
 # Maven/Gradle (caso venham a ser adotados futuramente)
