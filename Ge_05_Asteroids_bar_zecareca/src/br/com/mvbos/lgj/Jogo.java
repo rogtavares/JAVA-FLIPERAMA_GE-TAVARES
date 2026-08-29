@@ -158,7 +158,7 @@ public class Jogo extends JFrame {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("ss:SSSS");
 
-	private static final boolean depurar = true;
+	private static final boolean depurar = false;
 
 	public void iniciarJogo() {
 		long agora;
@@ -179,6 +179,12 @@ public class Jogo extends JFrame {
 
 				if (!Jogo.pausado)
 					cenario.atualizar();
+
+				if (cenario instanceof JogoCenario && ((JogoCenario) cenario).deveVoltarAoMenu()) {
+					cenario.descarregar();
+					cenario = new InicioCenario(tela.getWidth(), tela.getHeight());
+					cenario.carregar();
+				}
 
 				cenario.desenhar(g2d);
 
@@ -214,7 +220,7 @@ public class Jogo extends JFrame {
 
 	public void verificaTeclas() {
 		if (controleTecla[Tecla.BA.ordinal()]) {
-			// Pressionou espa�o ou enter
+			// Pressionou espaço ou enter
 			if (cenario instanceof InicioCenario) {
 				cenario.descarregar();
 

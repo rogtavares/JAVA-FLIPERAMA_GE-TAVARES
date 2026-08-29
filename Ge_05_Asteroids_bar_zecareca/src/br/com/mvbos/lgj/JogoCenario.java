@@ -36,6 +36,9 @@ public class JogoCenario extends CenarioPadrao {
 	private Texto texto = new Texto();
 	private Random rand = new Random();
 	private Estado estado = Estado.JOGANDO;
+	private int temporizadorFimDeJogo;
+
+	public static final int DURACAO_FIM_DE_JOGO = 55; // ~2,5s a ~21 quadros/s
 
 	private float graus;
 
@@ -104,6 +107,7 @@ public class JogoCenario extends CenarioPadrao {
 	public void atualizar() {
 
 		if (estado != Estado.JOGANDO) {
+			temporizadorFimDeJogo++;
 			return;
 		}
 
@@ -194,6 +198,23 @@ public class JogoCenario extends CenarioPadrao {
 				tiro.atualiza();
 		}
 
+		if (!navJogUm.isAtivo() && !navJogDois.isAtivo()) {
+			estado = Estado.PERDEU;
+			return;
+		}
+
+		boolean todosAsteroidesDestruidos = true;
+		for (int i = 0; i < contadorAsteroides; i++) {
+			if (aerolitos[i].isAtivo()) {
+				todosAsteroidesDestruidos = false;
+				break;
+			}
+		}
+
+		if (todosAsteroidesDestruidos) {
+			estado = Estado.GANHOU;
+		}
+
 	}
 
 	public void controlaJogadorUm() {
@@ -227,7 +248,7 @@ public class JogoCenario extends CenarioPadrao {
 	public void controlaJogadorDois() {
 
 		if (!navJogDois.isAtivo()) {
-			if (Jogo.controleTecla[Jogo.Tecla.MOUSE_A.ordinal()]) {
+			if (navJogDois.getVidas() > 0 && Jogo.controleTecla[Jogo.Tecla.MOUSE_A.ordinal()]) {
 				navJogDois.setAtivo(true);
 				Jogo.liberaTecla(Jogo.Tecla.MOUSE_A);
 			}
@@ -302,6 +323,14 @@ public class JogoCenario extends CenarioPadrao {
 		Util.corrigePosicao(el, largura, altura);
 	}
 
+	public Estado getEstado() {
+		return estado;
+	}
+
+	public boolean deveVoltarAoMenu() {
+		return estado != Estado.JOGANDO && temporizadorFimDeJogo >= DURACAO_FIM_DE_JOGO;
+	}
+
 	@Override
 	public void desenhar(Graphics2D g) {
 		g.setTransform(AF_VAZIO); // Comentar para um zoom cada vez maior
@@ -320,8 +349,8 @@ public class JogoCenario extends CenarioPadrao {
 
 		g.drawImage(fundo.getImage(), 0, 0, null);
 
-		texto.desenha(g, "Tupã | " + navJogUm.getPontos(), 10, 20);
-		texto.desenha(g, "Îasy | " + navJogDois.getPontos(), largura - 120, 20);
+		texto.desenha(g, "GE_TAVARES | " + navJogUm.getPontos() + " (vidas: " + navJogUm.getVidas() + ")", 10, 20);
+		texto.desenha(g, "Îasy | " + navJogDois.getPontos() + " (vidas: " + navJogDois.getVidas() + ")", largura - 220, 20);
 
 		if (navJogUm.getSeguidos() > 2)
 			texto.desenha(g, "x" + navJogUm.getSeguidos(), 10, 40);
@@ -344,6 +373,17 @@ public class JogoCenario extends CenarioPadrao {
 
 		colisaoAst.desenha(g);
 		explosaoAst.desenha(g);
+
+		if (estado != Estado.JOGANDO) {
+			texto.setCor(Color.WHITE);
+
+			if (estado == Estado.GANHOU)
+				texto.desenha(g, "VOCÊ VENCEU!", largura / 2 - 70, altura / 2);
+			else
+				texto.desenha(g, "GAME OVER", largura / 2 - 55, altura / 2);
+
+			texto.desenha(g, "Voltando ao menu...", largura / 2 - 80, altura / 2 + 25);
+		}
 
 	}
 

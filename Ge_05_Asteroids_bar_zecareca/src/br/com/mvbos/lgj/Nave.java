@@ -15,9 +15,12 @@ public class Nave extends Elemento {
 	private float velEmX;
 	private float velEmY;
 
+	public static final short VIDAS_INICIAIS = 3;
+
 	private short pontos;
 	private short erros;
 	private short seguidos;
+	private short vidas = VIDAS_INICIAIS;
 
 	@Override
 	public void atualiza() {
@@ -130,6 +133,15 @@ public class Nave extends Elemento {
 		errou();
 		velEmX = velEmX * -0.5f;
 		velEmY = velEmY * -0.5f;
+
+		vidas--;
+		if (vidas <= 0) {
+			setAtivo(false);
+		}
+	}
+
+	public short getVidas() {
+		return vidas;
 	}
 
 }
