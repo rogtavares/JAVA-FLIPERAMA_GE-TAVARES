@@ -22,7 +22,7 @@ public class Tanque extends Elemento {
 
 	@Override
 	public void desenha(Graphics2D g) {
-		g.setColor(Color.GREEN);
+		g.setColor(Color.CYAN);
 		g.fillRect(getPx() + getLargura() / 2 - cano / 2, getPy() - cano, cano, cano);
 
 		g.fillRect(getPx(), getPy(), getLargura(), getAltura());

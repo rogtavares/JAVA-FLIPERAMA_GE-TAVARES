@@ -1,13 +1,19 @@
 package br.com.mvbos.lgj;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Random;
 
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequencer;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -72,6 +78,51 @@ public class Jogo extends JFrame {
 		setSize(JANELA_LARGURA, JANELA_ALTURA);
 		setVisible(true);
 
+		carregarAudio();
+
+	}
+
+	private Sequencer sequencer;
+
+	private Clip clipTiro;
+
+	private Clip clipExplosao;
+
+	private Clip clipLevelUp;
+
+	private void carregarAudio() {
+		try {
+			sequencer = MidiSystem.getSequencer();
+			sequencer.setSequence(MidiSystem.getSequence(new File("som/fundo.mid")));
+			sequencer.open();
+			sequencer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+			sequencer.start();
+		} catch (Exception e) {
+			System.out.println("Erro ao tocar música de fundo: " + e.getMessage());
+		}
+
+		try {
+			clipTiro = AudioSystem.getClip();
+			clipTiro.open(AudioSystem.getAudioInputStream(new File("som/tiro.wav")));
+
+			clipExplosao = AudioSystem.getClip();
+			clipExplosao.open(AudioSystem.getAudioInputStream(new File("som/explosao.wav")));
+
+			clipLevelUp = AudioSystem.getClip();
+			clipLevelUp.open(AudioSystem.getAudioInputStream(new File("som/levelup.wav")));
+		} catch (Exception e) {
+			System.out.println("Erro ao carregar efeitos sonoros: " + e.getMessage());
+		}
+	}
+
+	private void tocar(Clip clip) {
+		if (clip == null) {
+			return;
+		}
+
+		clip.stop();
+		clip.setFramePosition(0);
+		clip.start();
 	}
 
 	private void setaTecla(int tecla, boolean pressionada) {
@@ -96,7 +147,9 @@ public class Jogo extends JFrame {
 
 	// Elementos do jogo
 
-	private int vidas = 3;
+	private static final int VIDAS_INICIAIS = 5;
+
+	private int vidas = VIDAS_INICIAIS;
 
 	// Desenharemos mais dois tanques na base da tela
 	private Elemento vida = new Tanque();
@@ -115,7 +168,13 @@ public class Jogo extends JFrame {
 
 	private Invader[][] invasores = new Invader[11][5];
 
-	private Invader.Tipos[] tipoPorLinha = { Tipos.PEQUENO, Tipos.MEDIO, Tipos.MEDIO, Tipos.GRANDE, Tipos.GRANDE };
+	// Uma formacao diferente por nivel (repete em ciclo apos a ultima)
+	private Invader.Tipos[][] formacoes = {
+		{ Tipos.PEQUENO, Tipos.MEDIO, Tipos.MEDIO, Tipos.GRANDE, Tipos.GRANDE },
+		{ Tipos.GRANDE, Tipos.GRANDE, Tipos.MEDIO, Tipos.MEDIO, Tipos.PEQUENO },
+		{ Tipos.MEDIO, Tipos.PEQUENO, Tipos.GRANDE, Tipos.PEQUENO, Tipos.MEDIO },
+		{ Tipos.GRANDE, Tipos.MEDIO, Tipos.PEQUENO, Tipos.MEDIO, Tipos.GRANDE },
+	};
 
 	//
 	private int linhaBase = 60;
@@ -142,6 +201,12 @@ public class Jogo extends JFrame {
 
 	private int level = 1;
 
+	private boolean gameOver;
+
+	private boolean levelTransicao;
+
+	private int levelTransicaoTimer;
+
 	private Random rand = new Random();
 
 	private void carregarJogo() {
@@ -165,6 +230,8 @@ public class Jogo extends JFrame {
 			tiros[i] = new Tiro(true);
 		}
 
+		Invader.Tipos[] tipoPorLinha = formacoes[(level - 1) % formacoes.length];
+
 		for (int i = 0; i < invasores.length; i++) {
 			for (int j = 0; j < invasores[i].length; j++) {
 				Invader e = new Invader(tipoPorLinha[j]);
@@ -182,7 +249,7 @@ public class Jogo extends JFrame {
 
 		totalInimigos = invasores.length * invasores[0].length;
 
-		contadorEspera = totalInimigos / level;
+		contadorEspera = Math.max(3, totalInimigos / level);
 
 	}
 
@@ -195,18 +262,73 @@ public class Jogo extends JFrame {
 				g2d.setColor(Color.BLACK);
 				g2d.fillRect(0, 0, JANELA_LARGURA, JANELA_ALTURA);
 
-				if (destruidos == totalInimigos) {
-					destruidos = 0;
-					level++;
-					carregarJogo();
+				if (gameOver) {
+					if (sequencer != null && sequencer.isRunning()) {
+						sequencer.stop();
+					}
 
+					g2d.setColor(Color.RED);
+					texto.desenha(g2d, "GAME OVER", tela.getWidth() / 2 - 55, tela.getHeight() / 2);
+					g2d.setColor(Color.WHITE);
+					texto.desenha(g2d, "Pontos: " + pontos, tela.getWidth() / 2 - 45, tela.getHeight() / 2 + 25);
+					g2d.setColor(Color.YELLOW);
+					texto.desenha(g2d, "GE_TAVARES", tela.getWidth() / 2 - 50, tela.getHeight() / 2 + 55);
+
+					Font fonteOriginal = texto.getFonte();
+					texto.setFonte(new Font("Tahoma", Font.PLAIN, 10));
+					g2d.setColor(Color.GRAY);
+					texto.desenha(g2d, "Space_BarBiju", tela.getWidth() / 2 - 33, tela.getHeight() / 2 + 75);
+					texto.setFonte(fonteOriginal);
+
+					g2d.setColor(Color.WHITE);
+					texto.desenha(g2d, "Pressione ESPAÇO para jogar novamente", tela.getWidth() / 2 - 140, tela.getHeight() / 2 + 105);
+
+					if (controleTecla[4]) {
+						gameOver = false;
+						vidas = VIDAS_INICIAIS;
+						pontos = 0;
+						level = 1;
+						destruidos = 0;
+						carregarJogo();
+
+						if (sequencer != null) {
+							sequencer.setTickPosition(0);
+							sequencer.start();
+						}
+					}
+
+					tela.repaint();
+					prxAtualizacao = System.currentTimeMillis() + FPS;
+					continue;
+				}
+
+				if (destruidos == totalInimigos && !levelTransicao) {
+					levelTransicao = true;
+					levelTransicaoTimer = 30;
+					tocar(clipLevelUp);
+				}
+
+				if (levelTransicao) {
+					g2d.setColor(Color.YELLOW);
+					texto.desenha(g2d, "LEVEL " + (level + 1), tela.getWidth() / 2 - 45, tela.getHeight() / 2);
+
+					levelTransicaoTimer--;
+					if (levelTransicaoTimer <= 0) {
+						levelTransicao = false;
+						destruidos = 0;
+						level++;
+						carregarJogo();
+					}
+
+					tela.repaint();
+					prxAtualizacao = System.currentTimeMillis() + FPS;
 					continue;
 				}
 
 				if (contador > contadorEspera) {
 					moverInimigos = true;
 					contador = 0;
-					contadorEspera = totalInimigos - destruidos - level * level;
+					contadorEspera = Math.max(3, totalInimigos - destruidos - level * level * 3);
 
 				} else {
 					contador++;
@@ -226,6 +348,7 @@ public class Jogo extends JFrame {
 					tiroTanque.setPx(tanque.getPx() + tanque.getLargura() / 2 - tiroTanque.getLargura() / 2);
 					tiroTanque.setPy(tanque.getPy() - tiroTanque.getAltura());
 					tiroTanque.setAtivo(true);
+					tocar(clipTiro);
 				}
 
 				if (chefe.isAtivo()) {
@@ -257,6 +380,7 @@ public class Jogo extends JFrame {
 						if (Util.colide(tiroTanque, inv)) {
 							inv.setAtivo(false);
 							tiroTanque.setAtivo(false);
+							tocar(clipExplosao);
 
 							destruidos++;
 							pontos = pontos + inv.getPremio() * level;
@@ -324,6 +448,7 @@ public class Jogo extends JFrame {
 						pontos = pontos + chefe.getPremio() * level;
 						chefe.setAtivo(false);
 						tiroTanque.setAtivo(false);
+						tocar(clipExplosao);
 
 					} else if (tiroTanque.getPy() < 0) {
 						tiroTanque.setAtivo(false);
@@ -338,6 +463,11 @@ public class Jogo extends JFrame {
 					if (Util.colide(tiroChefe, tanque)) {
 						vidas--;
 						tiroChefe.setAtivo(false);
+						tocar(clipExplosao);
+
+						if (vidas <= 0) {
+							gameOver = true;
+						}
 
 					} else if (tiroChefe.getPy() > tela.getHeight() - linhaBase - tiroChefe.getAltura()) {
 						tiroChefe.setAtivo(false);
@@ -353,6 +483,11 @@ public class Jogo extends JFrame {
 						if (Util.colide(tiros[i], tanque)) {
 							vidas--;
 							tiros[i].setAtivo(false);
+							tocar(clipExplosao);
+
+							if (vidas <= 0) {
+								gameOver = true;
+							}
 
 						} else if (tiros[i].getPy() > tela.getHeight() - linhaBase - tiros[i].getAltura())
 							tiros[i].setAtivo(false);
