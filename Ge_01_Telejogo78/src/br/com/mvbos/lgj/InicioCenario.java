@@ -2,7 +2,9 @@ package br.com.mvbos.lgj;
 
 import br.com.mvbos.lgj.base.CenarioPadrao;
 import br.com.mvbos.lgj.base.Menu;
+import br.com.mvbos.lgj.base.Texto;
 import br.com.mvbos.lgj.base.Util;
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class InicioCenario extends CenarioPadrao {
@@ -17,9 +19,13 @@ public class InicioCenario extends CenarioPadrao {
 
 	private Menu menuVeloc;
 
+	private final Texto titulo = new Texto(new java.awt.Font("Consolas", java.awt.Font.BOLD, 40));
+
 	@Override
 	public void carregar() {
 		bola = new Bola();
+
+		titulo.setCor(new Color(255, 215, 0));
 
 		menuModo = new Menu("Modo");
 		menuModo.addOpcoes("Normal", "Em casa");
@@ -110,6 +116,8 @@ public class InicioCenario extends CenarioPadrao {
 
 	@Override
 	public void desenhar(Graphics2D g) {
+		titulo.desenha(g, "GE TAVARES", largura / 2 - 130, 90);
+
 		bola.desenha(g);
 		menuModo.desenha(g);
 		menuVeloc.desenha(g);
