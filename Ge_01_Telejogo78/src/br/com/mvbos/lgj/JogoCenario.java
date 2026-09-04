@@ -2,6 +2,7 @@ package br.com.mvbos.lgj;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.util.Random;
 
 import br.com.mvbos.lgj.base.CenarioPadrao;
@@ -10,6 +11,14 @@ import br.com.mvbos.lgj.base.Texto;
 import br.com.mvbos.lgj.base.Util;
 
 public class JogoCenario extends CenarioPadrao {
+
+	public enum Estado {
+		JOGANDO, FIM
+	}
+
+	public static final int PONTOS_VITORIA = 11;
+
+	public static final int DURACAO_FIM_DE_JOGO = 55; // ~2,5s a ~20 quadros/s
 
 	private float inc = 0.5f;
 
@@ -24,6 +33,14 @@ public class JogoCenario extends CenarioPadrao {
 	private boolean reiniciarJogada;
 
 	private final Texto textoPausa = new Texto(Ponto.fonte);
+
+	private final Texto textoFim = new Texto();
+
+	private Estado estado = Estado.JOGANDO;
+
+	private int temporizadorFimDeJogo;
+
+	private String mensagemVencedor;
 
 	// Modo em casa
 	private int idx;
@@ -72,6 +89,10 @@ public class JogoCenario extends CenarioPadrao {
 		direita.setAtivo(true);
 		esquerda.setAtivo(true);
 
+		textoFim.setCor(Color.WHITE);
+		estado = Estado.JOGANDO;
+		temporizadorFimDeJogo = 0;
+
 		if (!Jogo.modoNormal) {
 			rand = new Random();
 			bolaArr = new Bola[30];
@@ -98,6 +119,11 @@ public class JogoCenario extends CenarioPadrao {
 
 	@Override
 	public void atualizar() {
+
+		if (estado != Estado.JOGANDO) {
+			temporizadorFimDeJogo++;
+			return;
+		}
 
 		if (Jogo.pausado)
 			return;
@@ -127,6 +153,9 @@ public class JogoCenario extends CenarioPadrao {
 
 		} else {
 			reiniciarJogada = validaColisao(bola);
+
+			if (reiniciarJogada)
+				verificaFimDeJogo();
 		}
 
 		validaPosicao(bola);
@@ -176,6 +205,26 @@ public class JogoCenario extends CenarioPadrao {
 		if (Jogo.pausado)
 			textoPausa.desenha(g, "PAUSA", largura / 2 - Ponto.TAMANHO_FONTE, altura / 2);
 
+		if (estado == Estado.FIM) {
+			textoFim.desenha(g, mensagemVencedor, largura / 2 - 90, altura / 2);
+			textoFim.desenha(g, "Voltando ao menu...", largura / 2 - 80, altura / 2 + 25);
+		}
+
+	}
+
+	private void verificaFimDeJogo() {
+		if (pontoA.getPonto() >= PONTOS_VITORIA) {
+			estado = Estado.FIM;
+			mensagemVencedor = "JOGADOR DA ESQUERDA VENCEU!";
+
+		} else if (pontoB.getPonto() >= PONTOS_VITORIA) {
+			estado = Estado.FIM;
+			mensagemVencedor = "JOGADOR DA DIREITA VENCEU!";
+		}
+	}
+
+	public boolean deveVoltarAoMenu() {
+		return estado == Estado.FIM && temporizadorFimDeJogo >= DURACAO_FIM_DE_JOGO;
 	}
 
 	private boolean validaColisao(Bola b) {
@@ -216,6 +265,8 @@ public class JogoCenario extends CenarioPadrao {
 	}
 
 	public void rebate(Elemento raquete, Bola bola) {
+		Toolkit.getDefaultToolkit().beep();
+
 		float vx = bola.getVelX();
 		float vy = bola.getVelY();
 
