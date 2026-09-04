@@ -1,28 +1,46 @@
-**FLIPERAMA JAVA**
-Uma verdadeira viagem nostálgica aos **clássicos dos clássicos**! 
-Este repositório  reúne alguns dos maiores jogos clássicos do mundo do entretenimento eletrônico, servindo como uma forma prática de entender a lógica e a linguagem Java.
+# FLIPERAMA JAVA
 
-**Jogos**
-**Ge_01_Telejogo78**
-Lembra do TeleJogo da Philco? Lançado no Brasil em 1977 pela Philco-Ford, foi um dos primeiros consoles de videogame no país. O TeleJogo era simples, com dois controles conectados por fios, permitindo jogos como tênis, futebol e squash. Nossa versão é para dois jogadores, com um controlando via teclado e outro via mouse.
+Uma viagem nostálgica aos clássicos do videogame! Jogos implementados em Java puro (Swing), como forma prática de aprender lógica de programação, algoritmos e um pouco de matemática de jogos (rotação, colisão, escala).
 
-**Ge_02_Space_BarBiju**
-O jogo que popularizou os jogos de tiro em 2D! Controle uma nave espacial e destrua ondas de alienígenas invasores. O objetivo é eliminar todos os inimigos antes que eles cheguem à parte inferior da tela.
+Faz parte do livro **"A lógica do jogo"**, da editora Casa do Código.
 
-**Ge_03_Tetris_Otica_Laranjal**
-Desafie sua lógica e estratégia! Encaixe peças de diferentes formas para completar linhas horizontais e evitar que as peças se acumulem até o topo da tela.
+## Como jogar
 
-**Ge_04_Pacman_Tavares**
-Classico do Classico,  Uma versão de Pac-Man mais fiel ao jogo original, utilizando não apenas imagens, mas também Sprites e Tiles para uma experiência autêntica.
+Requisito: JDK instalado e no PATH.
 
-**Ge_05_Asteroids_bar_zecareca**
-Este jogo representa a física de forma única.Utilizando gráficos vetoriais, ele se destacava na época pela velocidade e nitidez, em contraste com a maioria dos jogos pixelizados. Além disso, guarda as iniciais (ou 3 letras quaisquer) dos jogadores com as maiores pontuações!
+```powershell
+.\rodar.ps1 <nome-ou-numero>
+```
 
-**Ge_06_Balsa_Capela quebrada**
-Um jogo que aborda os princípios por trás da matemática de jogos como Asteroids. 
-De forma prática e sem focar diretamente em fórmulas, exploramos conceitos como rotação, escalonamento, transição e ângulos.
+| # | Jogo | Atalho |
+|---|------|--------|
+| 1 | Telejogo78 (Pong) | `telejogo` |
+| 2 | Space BarBiju | `space` |
+| 3 | Tetris | `tetris` |
+| 4 | Pac-Man | `pacman` |
+| 5 | Asteroids | `asteroids` |
+| 6 | Balsa/Capela Quebrada | `balsa` |
 
-Este repositório faz parte do livro "A lógica do jogo", publicado pela editora Casa do Código.
+Controles gerais: setas movem, **Enter** confirma/pausa, **Espaço** atira (nos jogos de tiro), **ESC** volta ao menu.
 
-Bom para treinar lógica de programação, algoritmos e estruturas de dados em Java, além de proporcionar uma experiência divertida e nostálgica com jogos clássicos.  
-**(( Gé Tavares, 2025))**
+Para compilar tudo de uma vez: `.\compilar_todos_java20.ps1`
+
+## Os jogos
+
+**Ge_01_Telejogo78** — O TeleJogo da Philco (1977). Versão para dois jogadores, um no teclado e outro no mouse.
+
+**Ge_02_Space_BarBiju** — O clássico jogo de tiro 2D. Destrua as ondas de alienígenas antes que cheguem embaixo.
+
+**Ge_03_Tetris_Otica_Laranjal** — Encaixe as peças e complete linhas antes que o topo seja atingido.
+
+**Ge_04_Pacman_Tavares** — Versão fiel ao Pac-Man original, com sprites e tiles.
+
+**Ge_05_Asteroids_bar_zecareca** — Física vetorial clássica, com ranking dos melhores pontuadores.
+
+**Ge_06_Balsa_Capela_quebrada** — Explora, na prática, a matemática por trás de jogos como Asteroids: rotação, escalonamento e ângulos.
+
+---
+
+Bom para treinar lógica de programação, algoritmos e estruturas de dados em Java, com uma pitada de nostalgia.
+
+**(( Gé Tavares, 2025 ))**
