@@ -5,13 +5,22 @@ import br.com.mvbos.lgj.base.Texto;
 import br.com.mvbos.lgj.base.Util;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.File;
 import java.util.Random;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Sequencer;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 public class JogoCenario extends CenarioPadrao {
 
 	public enum Estado {
 		JOGANDO, GANHOU, PERDEU
 	}
+
+	public static final int PONTOS_VITORIA = 300;
+
+	public static final int DURACAO_FIM_DE_JOGO = 55; // ~2,5s a ~20 quadros/s
 
 	private Nave nave;
 	private Tiro[] tiros = new Tiro[25];
@@ -20,6 +29,7 @@ public class JogoCenario extends CenarioPadrao {
 	private Texto texto = new Texto();
 	private Random rand = new Random();
 	private Estado estado = Estado.JOGANDO;
+	private int temporizadorFimDeJogo;
 
 	private int pontos;
 	private int adiciona = 2;
@@ -28,6 +38,15 @@ public class JogoCenario extends CenarioPadrao {
 	private int temporizador = 0;
 
 	private float graus;
+
+	// Som
+	private Clip clipTiro;
+
+	private Clip clipExplosao;
+
+	private Clip clipVitoria;
+
+	private Sequencer seqSomDeFundo;
 
 	public JogoCenario(int largura, int altura) {
 		super(largura, altura);
@@ -52,6 +71,26 @@ public class JogoCenario extends CenarioPadrao {
 		nave.setCor(Color.YELLOW);
 
 		Util.centraliza(nave, largura, altura);
+
+		try {
+			clipTiro = AudioSystem.getClip();
+			clipTiro.open(AudioSystem.getAudioInputStream(new File("som/tiro.wav")));
+
+			clipExplosao = AudioSystem.getClip();
+			clipExplosao.open(AudioSystem.getAudioInputStream(new File("som/explosao.wav")));
+
+			clipVitoria = AudioSystem.getClip();
+			clipVitoria.open(AudioSystem.getAudioInputStream(new File("som/levelup.wav")));
+
+			seqSomDeFundo = MidiSystem.getSequencer();
+			seqSomDeFundo.setSequence(MidiSystem.getSequence(new File("som/fundo.mid")));
+			seqSomDeFundo.open();
+			seqSomDeFundo.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+			seqSomDeFundo.start();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -59,17 +98,57 @@ public class JogoCenario extends CenarioPadrao {
 		nave = null;
 		tiros = null;
 		aerolitos = null;
+
+		if (clipTiro != null) {
+			clipTiro.stop();
+			clipTiro.close();
+		}
+
+		if (clipExplosao != null) {
+			clipExplosao.stop();
+			clipExplosao.close();
+		}
+
+		if (clipVitoria != null) {
+			clipVitoria.stop();
+			clipVitoria.close();
+		}
+
+		if (seqSomDeFundo != null) {
+			seqSomDeFundo.stop();
+			seqSomDeFundo.close();
+		}
+	}
+
+	private void tocar(Clip clip) {
+		if (clip == null)
+			return;
+
+		clip.stop();
+		clip.setFramePosition(0);
+		clip.start();
 	}
 
 	@Override
 	public void atualizar() {
 
 		if (estado != Estado.JOGANDO) {
+			temporizadorFimDeJogo++;
 			return;
 		}
 
 		if (nave.getLargura() < 5) {
 			estado = Estado.PERDEU;
+			if (seqSomDeFundo != null)
+				seqSomDeFundo.stop();
+			return;
+		}
+
+		if (pontos >= PONTOS_VITORIA) {
+			estado = Estado.GANHOU;
+			if (seqSomDeFundo != null)
+				seqSomDeFundo.stop();
+			tocar(clipVitoria);
 			return;
 		}
 
@@ -118,6 +197,7 @@ public class JogoCenario extends CenarioPadrao {
 					ast.setAtivo(false);
 					tiro.setAtivo(false);
 					pontos += ast.getVel();
+					tocar(clipExplosao);
 					break;
 				}
 			}
@@ -127,6 +207,7 @@ public class JogoCenario extends CenarioPadrao {
 				nave.setLargura(nave.getLargura() - 2);
 				nave.setAltura(nave.getAltura() - 2);
 				nave.inverteCor();
+				tocar(clipExplosao);
 
 				Util.centraliza(nave, largura, altura);
 				continue;
@@ -160,6 +241,8 @@ public class JogoCenario extends CenarioPadrao {
 		t.setPy(nave.getPy() + nave.getAltura() / 2 - t.getAltura() / 2);
 
 		t.setAtivo(true);
+
+		tocar(clipTiro);
 	}
 
 	private void maisAerolitos() {
@@ -214,7 +297,7 @@ public class JogoCenario extends CenarioPadrao {
 
 	@Override
 	public void desenhar(Graphics2D g) {
-		texto.desenha(g, "Pontos: " + pontos, 10, 20);
+		texto.desenha(g, "GE TAVARES | Pontos: " + pontos + " / " + PONTOS_VITORIA, 10, 20);
 
 		for (int i = 0; i < tiros.length; i++) {
 			if (tiros[i].isAtivo())
@@ -227,6 +310,16 @@ public class JogoCenario extends CenarioPadrao {
 		}
 
 		nave.desenha(g);
+
+		if (estado != Estado.JOGANDO) {
+			texto.desenha(g, estado == Estado.GANHOU ? "VOCE VENCEU!" : "GAME OVER", largura / 2 - 70, altura / 2);
+			texto.desenha(g, "Voltando ao menu...", largura / 2 - 80, altura / 2 + 25);
+			texto.desenha(g, "GE TAVARES", largura / 2 - 50, altura / 2 + 50);
+		}
+	}
+
+	public boolean deveVoltarAoMenu() {
+		return estado != Estado.JOGANDO && temporizadorFimDeJogo >= DURACAO_FIM_DE_JOGO;
 	}
 
 }
