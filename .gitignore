@@ -8,6 +8,8 @@
 # IDE
 .idea/
 *.iws
+*.iml
+.vscode/
 
 # Maven/Gradle (caso venham a ser adotados futuramente)
 target/
