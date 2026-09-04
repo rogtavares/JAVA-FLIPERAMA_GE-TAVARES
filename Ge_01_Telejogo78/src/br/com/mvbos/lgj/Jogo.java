@@ -107,17 +107,10 @@ public class Jogo extends JFrame {
 			@Override
 			public void paintComponent(Graphics g) {
 				g.drawImage(buffer, 0, 0, null);
-				// Placar (exemplo)
-				g.setColor(Color.WHITE);
-				g.setFont(g.getFont().deriveFont(18f));
-				g.drawString("Placar: ", 20, 30);
-				// Logomarca GE Tavares centralizada abaixo do placar
+				// Marca d'agua discreta no rodape, longe do placar
 				g.setColor(new Color(255, 215, 0)); // Amarelo ouro
-				g.setFont(g.getFont().deriveFont(32f));
-				int larguraTexto = g.getFontMetrics().stringWidth("GE Tavares");
-				int xCentro = (getWidth() - larguraTexto) / 2;
-				int yLogo = 70; // logo abaixo do placar
-				g.drawString("GE Tavares", xCentro, yLogo);
+				g.setFont(g.getFont().deriveFont(14f));
+				g.drawString("GE Tavares", 10, JANELA_ALTURA - 8);
 			}
 		};
 
@@ -188,6 +181,13 @@ public class Jogo extends JFrame {
 
 				} else {
 					cenario.atualizar();
+
+					if (cenario instanceof JogoCenario && ((JogoCenario) cenario).deveVoltarAoMenu()) {
+						cenario.descarregar();
+						cenario = new InicioCenario(tela.getWidth(), tela.getHeight());
+						cenario.carregar();
+					}
+
 					cenario.desenhar(g2d);
 				}
 
