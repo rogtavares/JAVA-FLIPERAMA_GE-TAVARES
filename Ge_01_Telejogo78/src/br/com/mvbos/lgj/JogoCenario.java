@@ -2,8 +2,12 @@ package br.com.mvbos.lgj;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Toolkit;
+import java.io.File;
 import java.util.Random;
+
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 
 import br.com.mvbos.lgj.base.CenarioPadrao;
 import br.com.mvbos.lgj.base.Elemento;
@@ -49,6 +53,13 @@ public class JogoCenario extends CenarioPadrao {
 
 	private Random rand;
 
+	// Som
+	private Clip clipRebate;
+
+	private Clip clipParede;
+
+	private Clip clipPonto;
+
 	public JogoCenario(int largura, int altura) {
 		super(largura, altura);
 
@@ -93,6 +104,21 @@ public class JogoCenario extends CenarioPadrao {
 		estado = Estado.JOGANDO;
 		temporizadorFimDeJogo = 0;
 
+		try {
+			clipRebate = AudioSystem.getClip();
+			clipRebate.open(AudioSystem.getAudioInputStream(new File("som/adiciona_peca.wav")));
+			aumentarVolume(clipRebate, 10f);
+
+			clipParede = AudioSystem.getClip();
+			clipParede.open(AudioSystem.getAudioInputStream(new File("som/parede.wav")));
+
+			clipPonto = AudioSystem.getClip();
+			clipPonto.open(AudioSystem.getAudioInputStream(new File("som/109662_grunz_success.wav")));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		if (!Jogo.modoNormal) {
 			rand = new Random();
 			bolaArr = new Bola[30];
@@ -115,6 +141,40 @@ public class JogoCenario extends CenarioPadrao {
 
 	@Override
 	public void descarregar() {
+		if (clipRebate != null) {
+			clipRebate.stop();
+			clipRebate.close();
+		}
+
+		if (clipParede != null) {
+			clipParede.stop();
+			clipParede.close();
+		}
+
+		if (clipPonto != null) {
+			clipPonto.stop();
+			clipPonto.close();
+		}
+	}
+
+	private void tocar(Clip clip) {
+		if (clip == null)
+			return;
+
+		clip.stop();
+		clip.setFramePosition(0);
+		clip.start();
+	}
+
+	private void aumentarVolume(Clip clip, float decibeis) {
+		try {
+			FloatControl ganho = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			float novoValor = ganho.getValue() + decibeis;
+			ganho.setValue(Math.min(novoValor, ganho.getMaximum()));
+
+		} catch (Exception e) {
+			// Controle de volume nao suportado nesta linha de audio
+		}
 	}
 
 	@Override
@@ -245,9 +305,12 @@ public class JogoCenario extends CenarioPadrao {
 			else
 				pontoA.add();
 
+			tocar(clipPonto);
+
 		} else if (b.getPy() <= 0 || b.getPy() + b.getAltura() >= altura) {
 			// Colisao no topo ou base da tela
 			b.inverteY();
+			tocar(clipParede);
 		}
 
 		return saiu;
@@ -265,7 +328,7 @@ public class JogoCenario extends CenarioPadrao {
 	}
 
 	public void rebate(Elemento raquete, Bola bola) {
-		Toolkit.getDefaultToolkit().beep();
+		tocar(clipRebate);
 
 		float vx = bola.getVelX();
 		float vy = bola.getVelY();

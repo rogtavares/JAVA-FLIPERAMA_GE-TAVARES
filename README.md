@@ -27,7 +27,7 @@ Para compilar tudo de uma vez: `.\compilar_todos_java20.ps1`
 
 ## Os jogos
 
-**Ge_01_Telejogo78** — O TeleJogo da Philco (1977). Versão para dois jogadores, um no teclado e outro no mouse.
+**Ge_01_Telejogo78** — O TeleJogo da Philco (1978). Versão para dois jogadores, um no teclado e outro no mouse.
 
 **Ge_02_Space_BarBiju** — O clássico jogo de tiro 2D. Destrua as ondas de alienígenas antes que cheguem embaixo.
 
@@ -43,4 +43,4 @@ Para compilar tudo de uma vez: `.\compilar_todos_java20.ps1`
 
 Bom para treinar lógica de programação, algoritmos e estruturas de dados em Java, com uma pitada de nostalgia.
 
-**(( Gé Tavares, 2025 ))**
+**(( Gé Tavares, Setembro 2026 ))**
