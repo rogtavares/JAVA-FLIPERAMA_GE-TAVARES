@@ -115,7 +115,7 @@ public class Jogo extends JFrame {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("ss:SSSS");
 
-	private static final boolean depurar = true;
+	private static final boolean depurar = false;
 
 	public void iniciarJogo() {
 		long agora;
@@ -145,6 +145,12 @@ public class Jogo extends JFrame {
 					if (!Jogo.pausado)
 						cenario.atualizar();
 
+					if (cenario instanceof JogoCenario && ((JogoCenario) cenario).deveVoltarAoMenu()) {
+						cenario.descarregar();
+						cenario = new InicioCenario(tela.getWidth(), tela.getHeight());
+						cenario.carregar();
+					}
+
 					cenario.desenhar(g2d);
 
 					if (Jogo.pausado) {
@@ -152,8 +158,10 @@ public class Jogo extends JFrame {
 						g2d.drawString("Pausado", tela.getWidth() / 2 - 30, 30);
 					}
 
-					g2d.setColor(Color.WHITE);
-					g2d.drawString("FPS " + somaFPS, 10, JANELA_ALTURA - 10);
+					if (depurar) {
+						g2d.setColor(Color.WHITE);
+						g2d.drawString("FPS " + somaFPS, 10, JANELA_ALTURA - 10);
+					}
 				}
 
 				tela.repaint();
